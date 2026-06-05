@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 
+FEET_PER_METER = 3.28084
+YARD_PER_METER = 1.09361
+
 
 @dataclass(frozen=True)
 class Unit:
