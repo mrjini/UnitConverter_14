@@ -1,0 +1,71 @@
+# UnitConverter_14 — Cursor Harness Rules
+
+## 보고
+
+- 모든 보고·설명·커밋 메시지 초안은 **한국어**로 작성한다.
+
+## Phase / Layer / Track 선언 (TDD 작업 시 필수)
+
+TDD 관련 작업을 시작할 때 응답 **첫 줄**에 아래 형식으로 선언한다.
+
+```
+Phase: {spec|red|green|refactoring|new_features} | Layer: {entity|control|boundary|infrastructure|harness|project} | Track: {Logic|UI|C2C}
+```
+
+| Phase | 허용 작업 |
+|-------|-----------|
+| spec | 명세·Harness·설정만. 구현·RED 테스트 본문 금지 |
+| red | 실패 테스트만. `src/` 수정 금지 |
+| green | RED 1묶음 통과 최소 구현 |
+| refactoring | 테스트 green 유지 리팩터 |
+| new_features | P2 확장 (설정·cubit·포맷) |
+
+## RED 단계 규칙
+
+- `src/` 및 `src/unit_converter/` **구현 코드 작성·수정 금지**
+- pytest 본문은 **`pytest.fail("RED: Test ID {ID} — {설명}")` 만 허용**
+- `@pytest.mark.skip`, `@pytest.mark.xfail`, assert 완화·try/except로 통과 우회 **금지**
+- Test ID(`CONV-*`, `VAL-*`, `FMT-*`, `CFG-*`, `REG-*`, `CLI-*`)를 test name 또는 docstring에 명시
+
+## Dual-Track Mock 규칙
+
+| Track | Harness | Mock |
+|-------|---------|------|
+| **Logic** | `tests/entity/`, `tests/control/`, `tests/boundary/test_input_parser.py` | **Domain Mock 금지** |
+| **UI** | `tests/boundary/` | Mock **허용** — CLI·stdin/stdout·파일 I/O 등 |
+
+## ECB 아키텍처
+
+- 의존 방향: **boundary → control → entity**
+- **entity**는 boundary / control / infrastructure **import 금지**
+- **control**은 boundary **import 금지** — 파싱은 CLI+InputParser에서 완료 후 `(unit, value)` 전달
+
+## Converter / SRP 금지 패턴
+
+- `entity/converter.py`에 단위별 `if unit == "meter": elif unit == "feet":` **금지**
+- **새 단위 추가 시 `converter.py` 수정 금지** — Registry + meter 경유 공식만 사용
+- feet↔yard **직접 비율 상수 금지** — 반드시 meter 경유
+
+## 책임 분리 (SRP)
+
+| 컴포넌트 | 레이어 | 책임 |
+|----------|--------|------|
+| InputParser | boundary | `unit:value` 파싱만 |
+| UnitRegistry | entity | 단위·비율 보관·조회 |
+| Validator | entity | 음수·단위 존재 검증 |
+| Converter | entity | meter 경유 변환 |
+| Formatter | boundary | table/json/csv 출력 |
+| ConvertUseCase | control | Validator→Converter 조율 (`unit`, `value` 수신) |
+| CLI | boundary | argv, stdin/stdout, exit code |
+
+## 참조 문서
+
+- SPEC: `docs/spec/README.md`
+- ECB 설계: `docs/spec/08-design-spec.md`
+- 시나리오: `docs/spec/09-scenario-catalog.md`
+- 추적: `docs/spec/11-traceability-matrix.md`
+- Skill: `.cursor/skills/unit-converter-tdd/SKILL.md`
+
+## Git
+
+- **git commit은 사용자가 명시적으로 요청할 때만** 수행한다.
