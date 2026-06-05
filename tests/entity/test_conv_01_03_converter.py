@@ -2,14 +2,14 @@
 
 from unit_converter.entity.converter import Converter
 from unit_converter.entity.registry import UnitRegistry
-from unit_converter.entity.unit import Unit
+from unit_converter.entity.unit import FEET_PER_METER, YARD_PER_METER, Unit
 
 
 def _make_default_registry() -> UnitRegistry:
     registry = UnitRegistry()
     registry.register(Unit("meter", 1.0))
-    registry.register(Unit("feet", 1 / 3.28084))
-    registry.register(Unit("yard", 1 / 1.09361))
+    registry.register(Unit("feet", 1 / FEET_PER_METER))
+    registry.register(Unit("yard", 1 / YARD_PER_METER))
     return registry
 
 

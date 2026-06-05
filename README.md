@@ -2,22 +2,24 @@
 ## Unit Converter (Python)
 ![unit-converter](./unit-converter.jpg)
 
-### Current Phase: **GREEN**
+### Current Phase: **REFACTOR**
 
 | 항목 | 상태 |
 |------|------|
-| **브랜치** | `green` |
+| **브랜치** | `refactoring` |
 | **Track** | Logic (entity) · C2C (문서) |
-| **GREEN 묶음** | TODO-001, TODO-002, TODO-003 |
-| **Test ID** | CONV-01, CONV-02, CONV-03 — **3 PASSED** |
+| **GREEN 완료** | TODO-001, TODO-002 — CONV-01~03 **3 PASSED** |
+| **REFACTOR 완료** | TODO-003 — Magic Number 상수 추출 (`FEET_PER_METER`, `YARD_PER_METER`) |
+| **Test ID** | CONV-01, CONV-02, CONV-03 — assert **불변**, **3 PASSED** |
 | **테스트 파일** | `tests/entity/test_conv_01_03_converter.py` |
 | **entity 구현** | `unit.py`, `registry.py`, `converter.py` |
+| **다음 REFACTOR** | `_to_meters` / `_from_meters` 추출 (converter.py) |
 | **다음 RED** | TODO-004 → CONV-04 (meter 경유 일관성) |
-| **허용** | entity 최소 구현, tests assert, Report/Prompting |
-| **금지** | RED에 없는 Test ID 구현, REFACTOR 수준 구조 변경 |
+| **허용** | 구조 개선, 상수 추출, private 메서드 추출, Report/Prompting |
+| **금지** | Test ID rename, assert 기대값 변경, 기능 추가 |
 
 ```bash
-python -m pytest tests/entity/test_conv_01_03_converter.py -v   # 3 passed
+python -m pytest tests/entity/ tests/control/ tests/boundary/ -v   # 3 passed
 ```
 
 명세: [docs/spec/README.md](./docs/spec/README.md) · 프로세스: [docs/process/c2c-workflow.md](./docs/process/c2c-workflow.md)
@@ -93,6 +95,8 @@ Dual-Track TDD 테스트 배치:
 | **RED Transcript** | [Prompting/03.UnitConverter_RED_CONV_01_03_Transcript.md](./Prompting/03.UnitConverter_RED_CONV_01_03_Transcript.md) | RED 프롬프트 기록 |
 | **GREEN Report** | [Report/04.UnitConverter_GREEN_CONV_01_03_Report.md](./Report/04.UnitConverter_GREEN_CONV_01_03_Report.md) | CONV-01~03 GREEN 보고 |
 | **GREEN Transcript** | [Prompting/04.UnitConverter_GREEN_CONV_01_03_Transcript.md](./Prompting/04.UnitConverter_GREEN_CONV_01_03_Transcript.md) | GREEN 프롬프트 기록 |
+| **REFACTOR Report** | [Report/05.UnitConverter_REFACTOR_MagicNumber_Report.md](./Report/05.UnitConverter_REFACTOR_MagicNumber_Report.md) | Magic Number 상수 추출 보고 |
+| **REFACTOR Transcript** | [Prompting/05.UnitConverter_REFACTOR_MagicNumber_Transcript.md](./Prompting/05.UnitConverter_REFACTOR_MagicNumber_Transcript.md) | REFACTOR 프롬프트 기록 |
 | **Cursor Harness** | [.cursorrules](./.cursorrules), [.cursor/skills/unit-converter-tdd/](./.cursor/skills/unit-converter-tdd/) | TDD 규칙·Skill |
 
 ---
@@ -142,9 +146,9 @@ deactivate
 4. 각 단위 간 변환이 정확히 계산되도록 테스트 코드를 작성할 것.
 
 ### 비즈니스 로직
-- `1 meter = 3.28084 feet`
-- `1 meter = 1.09361 yard`
-- feet/yard 간의 비율은 meter 기반으로 계산.
+- `1 meter = 3.28084 feet` — entity 상수 `FEET_PER_METER` ([unit.py](./src/unit_converter/entity/unit.py))
+- `1 meter = 1.09361 yard` — entity 상수 `YARD_PER_METER` ([unit.py](./src/unit_converter/entity/unit.py))
+- feet/yard 간의 비율은 meter 기반으로 계산 (`to_meter_factor = 1 / FEET_PER_METER` 등).
 
 ### 품질 요구사항
 - OCP를 만족하는 설계
