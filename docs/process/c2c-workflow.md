@@ -67,9 +67,8 @@ Given-When-Then 준수. Test ID를 test name/docstring에 포함.
 ```
 브랜치: green
 Test ID: {목록}
-참조: docs/spec/08-design-spec.md CODE-REF
-작업: RED 테스트를 green으로 만드는 최소 구현.
-리팩터링·추가 기능 금지.
+참조: docs/spec/08-design-spec.md ECB CODE-REF ({layer}.{module})
+작업: RED 테스트를 green으로. 해당 ECB 레이어에만 최소 구현.
 ```
 
 **금지:** SRP 분리(REFACTOR), P2 기능
@@ -83,9 +82,9 @@ Test ID: {목록}
 **AI 프롬프트 템플릿:**
 ```
 브랜치: refactoring
-참조: docs/spec/08-design-spec.md, 12-quality-checklist SRP/OCP
-작업: 패키지 분리, Formatter Protocol 등.
-모든 P0 Test ID green 유지. Test ID 변경 금지.
+참조: docs/spec/08-design-spec.md ECB, 12-quality-checklist
+작업: boundary→control→entity 의존 정렬, Formatter Protocol.
+모든 P0 Test ID green 유지.
 ```
 
 ---
@@ -100,12 +99,16 @@ Test ID: {목록}
 
 ---
 
-## 5. Dual-Track
+## 5. Dual-Track + ECB
 
-| Track | RED 순서 | 문서 |
-|-------|----------|------|
-| A | CONV → VAL | [10-dual-track-plan.md](../spec/10-dual-track-plan.md) |
-| B | FMT → CLI → CFG → REG | 동일 |
+| Track | ECB | Harness | RED 순서 |
+|-------|-----|---------|----------|
+| A | entity, control | `tests/entity/`, `tests/control/` | CONV → VAL → UseCase |
+| B | boundary, infrastructure | `tests/boundary/` | FMT → CLI → CFG → REG |
+
+문서: [10-dual-track-plan.md](../spec/10-dual-track-plan.md), [08-design-spec.md](../spec/08-design-spec.md)
+
+**CODE-REF 프롬프트 예:** `entity.converter.Converter.convert_all()`
 
 ---
 
@@ -113,9 +116,9 @@ Test ID: {목록}
 
 | 허용 | 금지 |
 |------|------|
-| docs/spec/*, docs/process/* | UnitConverter.py 수정 |
-| PRD, 시나리오, 설계 | pytest 작성 |
-| 추적 매트릭스 | units.json 생성 |
+| docs/spec/*, docs/process/* | `src/unit_converter/` 구현 (Harness 제외) |
+| ECB Harness (`__init__.py`) | pytest 작성 |
+| PRD, 시나리오, 설계 | units.json 생성 |
 
 ---
 

@@ -32,7 +32,7 @@
 | PRD-ID | 우선순위 | 요구사항 | 근거 |
 |--------|:--------:|----------|------|
 | **PRD-010** | P1 | OCP: 새 단위·포맷 추가 시 Converter 핵심 로직 수정 없이 확장 가능. | 품질 요구 OCP |
-| **PRD-011** | P1 | SRP: Parser, Validator, Converter, Formatter, Registry 역할 분리. | 품질 요구 SRP |
+| **PRD-011** | P1 | SRP + ECB: entity / control / boundary / infrastructure 역할 분리. | 품질 요구 SRP |
 | **PRD-012** | P1 | 모든 PRD 요구는 Test ID와 1:1 이상 추적 가능. | SC-1 추적성 |
 
 ### P2 — 확장 (new_features)
@@ -54,7 +54,7 @@
 | NFR-001 | Python 3.10+ |
 | NFR-002 | pytest 기반 테스트 |
 | NFR-003 | 외부 의존성 최소 (표준 라이브러리 우선, YAML 시 PyYAML 허용) |
-| NFR-004 | CLI 단일 진입점: `UnitConverter.py` 또는 `python -m unit_converter` |
+| NFR-004 | CLI 단일 진입점: `UnitConverter.py` → `boundary.cli.main()` |
 
 ---
 

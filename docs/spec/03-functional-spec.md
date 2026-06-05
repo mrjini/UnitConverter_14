@@ -5,8 +5,18 @@
 UnitConverter_14는 사용자가 입력한 `단위:값`을 등록된 모든 길이 단위로 변환하여 CLI에 출력하는 프로그램이다.
 
 ```
-[User Input] → [Parse] → [Validate] → [Convert via meter] → [Format] → [Output]
+[User Input]
+      │
+      ▼ boundary ── InputParser (unit:value)
+      │
+      ▼ control  ── ConvertUseCase
+      │              ├── Validator (entity)
+      │              └── Converter (entity, meter 경유)
+      │
+      ▼ boundary ── Formatter → stdout
 ```
+
+**ECB 의존:** boundary → control → entity
 
 ---
 
@@ -90,34 +100,50 @@ Options:
 
 ---
 
-## 4. 처리 흐름
+## 4. 처리 흐름 (ECB)
 
 ```mermaid
 flowchart TD
-    A[stdin: unit:value] --> B{Parse unit:value}
+    subgraph boundary
+        A[stdin: unit:value]
+        B[InputParser]
+        F[Formatter]
+        G[stdout]
+    end
+    subgraph control
+        UC[ConvertUseCase]
+    end
+    subgraph entity
+        C[Validator]
+        D[Converter via meter]
+    end
+    A --> B
     B -->|fail| E1[ERR_FORMAT / ERR_NUMBER]
-    B -->|ok| C{Validate}
+    B --> UC
+    UC --> C
     C -->|negative| E2[ERR_NEGATIVE]
     C -->|unknown unit| E3[ERR_UNKNOWN_UNIT]
-    C -->|ok| D[Convert all units via meter]
-    D --> F[Format output]
-    F --> G[stdout]
+    C --> D
+    D --> F
+    F --> G
 ```
 
 ---
 
-## 5. 컴포넌트 책임 (개요)
+## 5. 컴포넌트 책임 (ECB)
 
-| 컴포넌트 | 책임 | PRD |
-|----------|------|-----|
-| `CLI` | argv 파싱, stdin, stdout, exit code | PRD-001, 015~017 |
-| `InputParser` | `unit:value` 분리 | PRD-006 |
-| `Validator` | 숫자·음수·단위 존재 검증 | PRD-005~007 |
-| `UnitRegistry` | 단위·비율 보관·조회 | PRD-002, 013, 014 |
-| `Converter` | meter 경유 변환 | PRD-003, 004 |
-| `Formatter` | table/json/csv 렌더링 | PRD-008, 015~017 |
-| `ConfigLoader` | JSON/YAML 로드 | PRD-013 |
-| `UnitRegistrar` | 동적 등록 파싱 | PRD-014 |
+| ECB | 컴포넌트 | Harness | 책임 | PRD |
+|-----|----------|---------|------|-----|
+| **boundary** | `CLI` | `boundary/cli.py` | argv, stdin, stdout, exit code | PRD-001, 015~017 |
+| **boundary** | `InputParser` | `boundary/input_parser.py` | `unit:value` 분리 | PRD-006 |
+| **boundary** | `Formatter` | `boundary/formatter/` | table/json/csv 렌더링 | PRD-008, 015~017 |
+| **control** | `ConvertUseCase` | `control/convert_use_case.py` | 파싱→검증→변환 조율 | PRD-001 |
+| **control** | `RegisterUnitUseCase` | `control/register_unit_use_case.py` | 동적 등록 흐름 [P2] | PRD-014 |
+| **entity** | `Validator` | `entity/validator.py` | 숫자·음수·단위 검증 | PRD-005~007 |
+| **entity** | `UnitRegistry` | `entity/registry.py` | 단위·비율 보관·조회 | PRD-002, 013, 014 |
+| **entity** | `Converter` | `entity/converter.py` | meter 경유 변환 | PRD-003, 004 |
+| **infrastructure** | `ConfigLoader` | `infrastructure/config_loader.py` | JSON/YAML 로드 | PRD-013 |
+| **infrastructure** | `UnitRegistrar` | `infrastructure/unit_registrar.py` | 동적 등록 파싱 | PRD-014 |
 
 상세: [08-design-spec.md](./08-design-spec.md)
 

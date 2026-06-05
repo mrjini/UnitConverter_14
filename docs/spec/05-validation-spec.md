@@ -5,11 +5,13 @@
 입력은 아래 순서로 검증한다. **첫 실패 시 즉시 중단.**
 
 ```
-1. Format (콜론·비어 있지 않음)
-2. Number  (float 파싱)
-3. Negative (value >= 0)
-4. Unit    (Registry 존재)
+1. Format (콜론·비어 있지 않음)     ← boundary.InputParser
+2. Number  (float 파싱)            ← boundary.InputParser
+3. Negative (value >= 0)           ← entity.Validator
+4. Unit    (Registry 존재)         ← entity.Validator
 ```
+
+**ECB:** 1~2는 boundary, 3~4는 entity. control.ConvertUseCase가 순서를 조율.
 
 ---
 
@@ -98,14 +100,14 @@
 
 ## 3. Test ID ↔ 규칙 매핑
 
-| Test ID | 규칙 | 입력 예 | 기대 |
-|---------|------|---------|------|
-| VAL-01 | VAL-R03 | `meter:-1` | exit 1, ERR_NEGATIVE |
-| VAL-02 | VAL-R01 | `meter2.5` | exit 1, ERR_FORMAT |
-| VAL-02b | VAL-R02 | `meter:abc` | exit 1, ERR_NUMBER |
-| VAL-03 | VAL-R04 | `mile:1` | exit 1, ERR_UNKNOWN_UNIT |
-| VAL-04 | VAL-R01 | `meter:` | exit 1, ERR_FORMAT |
-| VAL-05 | VAL-R03 | `feet:0` | exit 0, 정상 변환 |
+| Test ID | 규칙 | ECB | 입력 예 | 기대 |
+|---------|------|-----|---------|------|
+| VAL-01 | VAL-R03 | entity | `meter:-1` | exit 1, ERR_NEGATIVE |
+| VAL-02 | VAL-R01 | boundary | `meter2.5` | exit 1, ERR_FORMAT |
+| VAL-02b | VAL-R02 | boundary | `meter:abc` | exit 1, ERR_NUMBER |
+| VAL-03 | VAL-R04 | entity | `mile:1` | exit 1, ERR_UNKNOWN_UNIT |
+| VAL-04 | VAL-R01 | boundary | `meter:` | exit 1, ERR_FORMAT |
+| VAL-05 | VAL-R03 | entity | `feet:0` | exit 0, 정상 변환 |
 
 ---
 

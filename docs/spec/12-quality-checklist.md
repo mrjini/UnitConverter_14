@@ -4,17 +4,24 @@
 
 ### 문서 완성도
 
-- [ ] 00-glossary 용어 일관
+- [ ] 00-glossary ECB 용어 일관
+- [ ] 08-design-spec ECB 레이어·의존 방향 (boundary → control → entity)
 - [ ] 02-prd 모든 요구 PRD-ID 부여
 - [ ] 09-scenario-catalog P0 시나리오 Given-When-Then 완료
-- [ ] 11-traceability-matrix orphan 0건
+- [ ] 11-traceability-matrix orphan 0건, CODE-REF ECB 경로
 - [ ] 06-conversion-rules Golden Values (8.2, 2.7) 명시
 
 ### SPEC 금지사항 준수
 
-- [ ] 구현 코드 추가/수정 없음 (`UnitConverter.py` 불변)
-- [ ] pytest / RED 테스트 없음
+- [ ] `src/unit_converter/` — Harness(`__init__.py`)만, 구현 없음
+- [ ] `tests/` — Harness만, RED/pytest 본문 없음
+- [ ] `UnitConverter.py` 불변
 - [ ] units.json 실 파일 없음
+
+### Harness 존재
+
+- [ ] `src/unit_converter/{entity,control,boundary,infrastructure}/`
+- [ ] `tests/{entity,control,boundary}/`
 
 ---
 
@@ -22,32 +29,38 @@
 
 - [ ] P0 Test ID 전부 RED (실패) 확인
 - [ ] Test 함수/docstring에 Test ID 명시
-- [ ] Track A 테스트가 Converter/Validator만 직접 호출 (CLI 미의존)
+- [ ] `tests/entity/` — entity만 직접 호출 (CLI/boundary 미의존)
+- [ ] `tests/control/` — ConvertUseCase 단위
 
 ---
 
 ## GREEN → REFACTORING 게이트
 
 - [ ] P0 pytest 전부 green
-- [ ] feet↔yard 직접 상수 코드에 없음 (CONV-04)
+- [ ] feet↔yard 직접 상수 `entity/`에 없음 (CONV-04)
 - [ ] exit code VAL-* = 1
 
 ---
 
 ## REFACTORING → staging 게이트
 
-### SRP
+### ECB / SRP
 
-- [ ] InputParser: 파싱만
-- [ ] Validator: 검증만
-- [ ] Converter: 변환만
-- [ ] Formatter: 출력만
-- [ ] CLI: 오케스트레이션만
+| 레이어 | 검증 |
+|--------|------|
+| **entity** | Validator, Converter, UnitRegistry — 도메인만 |
+| **control** | ConvertUseCase — 조율만, I/O 없음 |
+| **boundary** | CLI, InputParser, Formatter — 표현·I/O만 |
+| **infrastructure** | ConfigLoader, UnitRegistrar — 외부 자원만 |
+
+- [ ] entity → boundary 의존 **없음**
+- [ ] entity → infrastructure 의존 **없음**
+- [ ] boundary → control → entity 의존 방향 준수
 
 ### OCP
 
-- [ ] 새 Formatter 추가 시 Converter 수정 없음
-- [ ] units.json 단위 추가 시 Converter 수정 없음
+- [ ] 새 Formatter(boundary) 추가 시 entity.Converter 수정 없음
+- [ ] units.json 단위 추가 시 entity.Converter 수정 없음
 
 ### 회귀
 
@@ -59,7 +72,7 @@
 ## new_features → staging 게이트
 
 - [ ] P2 Test ID (CFG, REG, FMT-02/03) green
-- [ ] PRD-013~017 추적 매트릭스 CODE-REF 갱신
+- [ ] PRD-013~017 추적 매트릭스 CODE-REF (infrastructure/boundary) 갱신
 - [ ] SPEC 문서(07, 09)와 구현 일치
 
 ---

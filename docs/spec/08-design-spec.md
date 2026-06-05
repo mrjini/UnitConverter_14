@@ -1,80 +1,95 @@
-# 08 — Design Spec (OCP / SRP 설계 명세)
+# 08 — Design Spec (ECB + OCP / SRP)
 
 ## 1. 설계 원칙
 
 | 원칙 | 적용 |
 |------|------|
-| **SRP** | 한 클래스 = 한 변경 이유 |
-| **OCP** | 확장(단위·포맷·설정)에 open, Converter 핵심에 closed |
-| **DIP** | Converter는 Registry·Formatter **인터페이스**에 의존 |
+| **ECB** | Entity–Control–Boundary. 의존 방향: **boundary → control → entity** |
+| **SRP** | 레이어·클래스별 변경 이유 하나 |
+| **OCP** | 확장(단위·포맷·설정)에 open, entity 변환 핵심에 closed |
+| **DIP** | control은 entity 추상에 의존; entity는 boundary/infrastructure를 모름 |
+
+### UnitConverter 가이드 → ECB 매핑
+
+| 가이드 | ECB 레이어 | Harness |
+|--------|------------|---------|
+| **domain** — 변환·검증·단위 | **entity** | `src/unit_converter/entity/` |
+| **app** — 유스케이스·흐름 | **control** | `src/unit_converter/control/` |
+| CLI·포맷·입력 파싱 | **boundary** | `src/unit_converter/boundary/` |
+| 설정·파일·동적 등록 | **infrastructure** | `src/unit_converter/infrastructure/` |
 
 ---
 
-## 2. 목표 패키지 구조 (GREEN 이후)
+## 2. ECB 패키지 구조 (GREEN 이후)
 
 ```
-unit_converter/
+src/unit_converter/
 ├── __init__.py
-├── cli.py                 # CLI 진입, argv, stdin/stdout
-├── parser.py              # InputParser — unit:value 분리
-├── validator.py           # Validator — VAL-R01~04
-├── registry.py            # UnitRegistry — 단위·비율
-├── converter.py           # Converter — meter 경유 변환
-├── formatter/
-│   ├── __init__.py
-│   ├── base.py            # Formatter Protocol
-│   ├── table.py
-│   ├── json_fmt.py
-│   └── csv_fmt.py
-├── config_loader.py       # ConfigLoader — JSON/YAML
-└── registrar.py           # UnitRegistrar — 동적 등록
+├── entity/                          # 도메인 — 순수 비즈니스 규칙
+│   ├── __init__.py                  # (Harness: SPEC)
+│   ├── unit.py                      # Unit, ConversionResult
+│   ├── registry.py                  # UnitRegistry
+│   ├── validator.py                 # Validator, ValidationError
+│   └── converter.py                 # Converter (meter 경유)
+├── control/                         # 유스케이스 — 흐름 조율
+│   ├── __init__.py                  # (Harness: SPEC)
+│   └── convert_use_case.py          # ConvertUseCase
+│   └── register_unit_use_case.py    # RegisterUnitUseCase (P2)
+├── boundary/                        # 외부 I/O · 표현
+│   ├── __init__.py                  # (Harness: SPEC)
+│   ├── cli.py                       # CLI 진입, argv, stdin/stdout
+│   ├── input_parser.py              # InputParser — unit:value
+│   └── formatter/
+│       ├── __init__.py
+│       ├── base.py                  # Formatter Protocol
+│       ├── table.py
+│       ├── json_fmt.py
+│       └── csv_fmt.py
+└── infrastructure/                  # 외부 자원 · 기술 세부
+    ├── __init__.py                  # (Harness: SPEC)
+    ├── config_loader.py             # ConfigLoader — JSON/YAML
+    └── unit_registrar.py            # UnitRegistrar — 동적 등록
 
-UnitConverter.py           # thin wrapper → cli.main()
+UnitConverter.py                       # thin wrapper → boundary.cli.main()
+
 tests/
-├── track_a/               # Domain: CONV, VAL
-└── track_b/               # Integration: FMT, CFG, REG, CLI
+├── entity/                          # Track A: CONV, VAL
+├── control/                         # Track A/B: UseCase 단위
+└── boundary/                        # Track B: FMT, CLI, CFG, REG E2E
 ```
 
-**SPEC:** 구조·이름만 정의. 디렉터리 생성은 GREEN.
+**SPEC:** Harness(`__init__.py`)만 존재. 모듈 파일은 GREEN부터 생성.
 
 ---
 
-## 3. 컴포넌트 상세
+## 3. 레이어 의존 규칙
 
-### 3.1 InputParser (SRP: 문자열 → 구조)
-
-```python
-@dataclass
-class ParsedInput:
-    unit: str
-    value_str: str
-
-class InputParser:
-    def parse(self, raw: str) -> ParsedInput: ...
+```
+[ User / stdin / argv / config file ]
+              │
+              ▼
+         boundary  ──►  control  ──►  entity
+              │            │
+              │            └── infrastructure (Registry 구성)
+              └── formatter, CLI (stdout)
 ```
 
-- 변경 이유: 입력 문법 변경
-- **PRD:** PRD-006 | **Test:** VAL-02
+| From → To | 허용 |
+|-----------|:----:|
+| boundary → control | ✓ |
+| control → entity | ✓ |
+| control → infrastructure | ✓ |
+| entity → boundary | ✗ |
+| entity → infrastructure | ✗ |
+| entity → control | ✗ |
 
 ---
 
-### 3.2 Validator (SRP: 비즈니스 규칙 검증)
+## 4. 컴포넌트 상세 (ECB별)
 
-```python
-class ValidationError(Exception):
-    code: str  # ERR_*
-    message: str
+### 4.1 entity — 도메인
 
-class Validator:
-    def validate(self, parsed: ParsedInput, registry: UnitRegistry) -> float: ...
-```
-
-- 변경 이유: 검증 규칙 추가/변경
-- **PRD:** PRD-005~007 | **Test:** VAL-*
-
----
-
-### 3.3 UnitRegistry (SRP: 단위 메타데이터)
+#### UnitRegistry (`entity/registry.py`)
 
 ```python
 @dataclass
@@ -89,107 +104,153 @@ class UnitRegistry:
     def has(self, name: str) -> bool: ...
 ```
 
-- 변경 이유: 단위 저장·조회 방식
 - **PRD:** PRD-002, 013, 014 | **Test:** VAL-03, CFG-01, REG-01
 
----
-
-### 3.4 Converter (SRP: meter 경유 변환)
+#### Validator (`entity/validator.py`)
 
 ```python
-@dataclass
-class ConversionResult:
-    input_unit: str
-    input_value: float
-    target_unit: str
-    target_value: float  # rounded display
+class ValidationError(Exception):
+    code: str  # ERR_*
 
+class Validator:
+    def validate(self, unit: str, value: float, registry: UnitRegistry) -> float: ...
+```
+
+- **PRD:** PRD-005~007 | **Test:** VAL-*
+
+#### Converter (`entity/converter.py`)
+
+```python
 class Converter:
     def convert_all(self, unit: str, value: float, registry: UnitRegistry) -> list[ConversionResult]: ...
 ```
 
-- **내부:** `_to_meters`, `_from_meters` private
-- 변경 이유: 변환 알고리즘 (base unit 변경 시에만)
-- **금지:** feet↔yard 직접 상수
-- **PRD:** PRD-003, 004 | **Test:** CONV-*
+- **내부:** `_to_meters`, `_from_meters` — feet↔yard **직접 상수 금지**
+- **PRD:** PRD-003, 004, 009 | **Test:** CONV-*
 
 ---
 
-### 3.5 Formatter (OCP: Strategy)
+### 4.2 control — 유스케이스
+
+#### ConvertUseCase (`control/convert_use_case.py`)
+
+```python
+class ConvertUseCase:
+    def execute(self, raw_input: str, registry: UnitRegistry) -> list[ConversionResult]: ...
+    # InputParser(parse) → Validator → Converter — boundary가 아닌 control에서 조율
+```
+
+- boundary의 CLI는 UseCase를 **호출만** 함 (오케스트레이션은 control)
+- **PRD:** PRD-001 | **Test:** CONV-*, CLI-02
+
+#### RegisterUnitUseCase (`control/register_unit_use_case.py`) [P2]
+
+- infrastructure.UnitRegistrar 결과를 Registry에 반영
+- **PRD:** PRD-014 | **Test:** REG-*
+
+---
+
+### 4.3 boundary — I/O · 표현
+
+#### InputParser (`boundary/input_parser.py`)
+
+```python
+@dataclass
+class ParsedInput:
+    unit: str
+    value_str: str
+
+class InputParser:
+    def parse(self, raw: str) -> ParsedInput: ...
+```
+
+- **PRD:** PRD-006 | **Test:** VAL-02 (형식); 숫자·음수·단위는 entity.Validator
+
+#### CLI (`boundary/cli.py`)
+
+```python
+def main(argv: list[str] | None = None) -> int: ...
+```
+
+- argv, stdin, stdout, exit code — **ConvertUseCase 위임**
+- **PRD:** PRD-001, 015~017 | **Test:** CLI-*
+
+#### Formatter (`boundary/formatter/`)
 
 ```python
 class Formatter(Protocol):
     def format(self, results: list[ConversionResult]) -> str: ...
-
-class TableFormatter(Formatter): ...
-class JsonFormatter(Formatter): ...
-class CsvFormatter(Formatter): ...
 ```
 
-- 새 포맷 = 새 Formatter 클래스 + CLI registry 등록
-- Converter **수정 없음**
+- Table / Json / Csv — **OCP:** 새 포맷 = 새 클래스, entity 수정 없음
 - **PRD:** PRD-008, 015~017 | **Test:** FMT-*
 
 ---
 
-### 3.6 ConfigLoader / UnitRegistrar
+### 4.4 infrastructure — 외부 자원
 
-| 클래스 | SRP | OCP |
-|--------|-----|-----|
-| ConfigLoader | 파일 → Registry | 새 Loader 추가 |
-| UnitRegistrar | 등록 문자열 → Unit | 패턴 확장 시만 수정 |
+| 클래스 | 파일 | SRP |
+|--------|------|-----|
+| ConfigLoader | `infrastructure/config_loader.py` | 파일 → UnitRegistry |
+| UnitRegistrar | `infrastructure/unit_registrar.py` | 등록 문자열 → Unit |
 
----
-
-### 3.7 CLI (SRP: 오케스트레이션)
-
-```python
-def main(argv: list[str] | None = None) -> int:
-    # parse args → build registry → read stdin → validate → convert → format → print
-```
-
-- 변경 이유: UX·옵션·exit code
-- **Test:** CLI-* (Track B)
+- **PRD:** PRD-013, 014 | **Test:** CFG-*, REG-*
+- control이 infrastructure를 호출해 Registry를 **구성**; entity는 결과 Registry만 받음
 
 ---
 
-## 4. 확장 시나리오 (OCP 검증)
+## 5. 확장 시나리오 (OCP)
 
-| 확장 | 변경 파일 | 불변 파일 |
-|------|-----------|-----------|
-| inch 단위 추가 | units.json, (선택) ConfigLoader | Converter |
-| xml 포맷 | formatter/xml.py, cli format map | Converter, Validator |
-| cubit 등록 | UnitRegistrar (이미 존재) | Converter |
-
----
-
-## 5. 기존 UnitConverter.py와의 관계
-
-현재 프로토타입은 **GREEN MVP 후** `UnitConverter.py` → `cli.main()` 위임으로 대체. REFACTOR에서 SRP 분리 완료.
+| 확장 | 변경 | 불변 (entity) |
+|------|------|---------------|
+| inch 단위 | units.json, ConfigLoader | Converter, Validator |
+| xml 포맷 | boundary/formatter/xml.py | Converter, Validator |
+| cubit 등록 | UnitRegistrar | Converter |
 
 ---
 
-## 6. 인터페이스 다이어그램
+## 6. UnitConverter.py
+
+GREEN MVP 후 `UnitConverter.py` → `boundary.cli.main()` 위임. REFACTOR에서 ECB 레이어 정렬.
+
+---
+
+## 7. ECB 클래스 다이어그램
 
 ```mermaid
 classDiagram
-    class CLI
-    class InputParser
-    class Validator
-    class UnitRegistry
-    class Converter
-    class Formatter
-    class ConfigLoader
-    class UnitRegistrar
+    direction TB
 
-    CLI --> InputParser
-    CLI --> Validator
-    CLI --> Converter
+    namespace boundary {
+        class CLI
+        class InputParser
+        class Formatter
+    }
+    namespace control {
+        class ConvertUseCase
+        class RegisterUnitUseCase
+    }
+    namespace entity {
+        class Validator
+        class UnitRegistry
+        class Converter
+    }
+    namespace infrastructure {
+        class ConfigLoader
+        class UnitRegistrar
+    }
+
+    CLI --> ConvertUseCase
     CLI --> Formatter
     CLI --> ConfigLoader
-    CLI --> UnitRegistrar
-    Validator --> UnitRegistry
-    Converter --> UnitRegistry
+    CLI --> RegisterUnitUseCase
+    ConvertUseCase --> InputParser
+    ConvertUseCase --> Validator
+    ConvertUseCase --> Converter
+    RegisterUnitUseCase --> UnitRegistrar
+    RegisterUnitUseCase --> UnitRegistry
     ConfigLoader --> UnitRegistry
     UnitRegistrar --> UnitRegistry
+    Validator --> UnitRegistry
+    Converter --> UnitRegistry
 ```

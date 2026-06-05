@@ -2,6 +2,15 @@
 
 UnitConverter_14 **spec** 브랜치 산출물. 구현 코드·RED 테스트는 **작성하지 않음**.
 
+## ECB Harness (SPEC)
+
+```
+src/unit_converter/{entity,control,boundary,infrastructure}/  # __init__.py only
+tests/{entity,control,boundary}/                              # __init__.py only
+```
+
+의존 방향: **boundary → control → entity**. 상세: [08-design-spec.md](./08-design-spec.md)
+
 ## 읽는 순서
 
 | 순서 | 문서 | 목적 |
@@ -13,7 +22,7 @@ UnitConverter_14 **spec** 브랜치 산출물. 구현 코드·RED 테스트는 *
 | 5 | [04-io-contract.md](./04-io-contract.md) | 입·출력 |
 | 6 | [05-validation-spec.md](./05-validation-spec.md) | 검증 규칙 |
 | 7 | [06-conversion-rules.md](./06-conversion-rules.md) | 변환 공식 |
-| 8 | [08-design-spec.md](./08-design-spec.md) | OCP/SRP |
+| 8 | [08-design-spec.md](./08-design-spec.md) | **ECB** + OCP/SRP |
 | 9 | [09-scenario-catalog.md](./09-scenario-catalog.md) | Test ID 시나리오 |
 | 10 | [10-dual-track-plan.md](./10-dual-track-plan.md) | TDD 순서 |
 | 11 | [11-traceability-matrix.md](./11-traceability-matrix.md) | PRD↔Test↔Code |

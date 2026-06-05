@@ -2,9 +2,18 @@
 
 > Given-When-Then 형식. **pytest 코드 없음** — RED 단계에서 구현.
 
+## ECB ↔ Track ↔ Harness
+
+| Track | ECB | Test Harness | Test 접두 |
+|-------|-----|--------------|-----------|
+| A | entity | `tests/entity/` | CONV-*, VAL-* |
+| A | control | `tests/control/` | ConvertUseCase |
+| B | boundary | `tests/boundary/` | FMT-*, CLI-* |
+| B | infrastructure (E2E) | `tests/boundary/` | CFG-*, REG-* |
+
 ---
 
-## Track A — Domain
+## Track A — entity / control
 
 ### CONV — 변환
 
@@ -16,6 +25,7 @@
 | **When** | `meter:2.5` 변환 |
 | **Then** | meter=2.5, feet=8.2, yard=2.7 (1자리) |
 | **PRD** | PRD-001, 003, 008, 009 |
+| **ECB** | entity (`entity.converter`) |
 
 #### CONV-02: feet 입력 변환
 
@@ -114,7 +124,7 @@
 
 ---
 
-## Track B — Integration
+## Track B — boundary / infrastructure
 
 ### FMT — 출력 포맷
 

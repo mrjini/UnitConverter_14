@@ -82,22 +82,24 @@ units:
 
 ---
 
-## 5. ConfigLoader 책임
+## 5. ConfigLoader 책임 (infrastructure)
 
 | 메서드 | 설명 |
 |--------|------|
 | `load(path: str) -> UnitRegistry` | 파일 파싱 → Registry 구성 |
 | `load_default() -> UnitRegistry` | 내장 기본 3단위 |
 
-**CODE-REF:** `config_loader.ConfigLoader`
+**ECB:** infrastructure — control/CLI가 호출해 Registry를 **구성**; entity는 완성된 Registry만 사용.
+
+**CODE-REF:** `infrastructure.config_loader.ConfigLoader`
 
 ---
 
 ## 6. 동적 등록과의 관계
 
-1. ConfigLoader로 Registry 초기화
-2. `--register`로 UnitRegistrar가 **추가** (중복 시 ERR_REGISTRATION)
-3. 최종 Registry로 Converter 동작
+1. ConfigLoader(infrastructure)로 Registry 초기화 — control/CLI 경유
+2. `--register` → UnitRegistrar(infrastructure) + RegisterUnitUseCase(control)
+3. ConvertUseCase(control) → entity.Converter
 
 **Test ID:** REG-01 (cubit 등록 후 변환)
 
