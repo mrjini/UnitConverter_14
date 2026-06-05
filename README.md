@@ -2,14 +2,17 @@
 ## Unit Converter (Python)
 ![unit-converter](./unit-converter.jpg)
 
-### Current Phase: **SPEC**
+### Current Phase: **RED**
 
 | 항목 | 상태 |
 |------|------|
-| **브랜치** | `spec` |
-| **Track** | C2C (Cursor to Code) |
-| **허용** | `docs/spec/`, Harness 디렉터리, 명세 문서 |
-| **금지** | `src/unit_converter/` 구현 코드, `tests/` RED 테스트, pytest 본문 |
+| **브랜치** | `red` |
+| **Track** | Logic (entity) · C2C (문서) |
+| **RED 묶음** | TODO-001, TODO-002, TODO-003 |
+| **Test ID** | CONV-01, CONV-02, CONV-03 — **3 FAILED** (의도적 RED) |
+| **테스트 파일** | `tests/entity/test_conv_01_03_converter.py` |
+| **허용** | `tests/` RED 스켈레톤 (`pytest.fail` only), Report/Prompting |
+| **금지** | `src/unit_converter/` 구현 코드, assert 본문, skip/xfail |
 
 명세: [docs/spec/README.md](./docs/spec/README.md) · 프로세스: [docs/process/c2c-workflow.md](./docs/process/c2c-workflow.md)
 
@@ -80,6 +83,8 @@ Dual-Track TDD 테스트 배치 (RED 단계부터):
 | **프로세스** | [docs/process/c2c-workflow.md](./docs/process/c2c-workflow.md), [mom-test-summary.md](./docs/process/mom-test-summary.md) | ARRR, Mom Test |
 | **SPEC Report** | [Report/02.UnitConverter_SPEC_Report.md](./Report/02.UnitConverter_SPEC_Report.md) | STEP 1~10 보고 |
 | **SPEC Transcript** | [Prompting/02.UnitConverter_SPEC_Transcript.md](./Prompting/02.UnitConverter_SPEC_Transcript.md) | 프롬프트 기록 |
+| **RED Report** | [Report/03.UnitConverter_RED_CONV_01_03_Report.md](./Report/03.UnitConverter_RED_CONV_01_03_Report.md) | CONV-01~03 RED 보고 |
+| **RED Transcript** | [Prompting/03.UnitConverter_RED_CONV_01_03_Transcript.md](./Prompting/03.UnitConverter_RED_CONV_01_03_Transcript.md) | RED 프롬프트 기록 |
 | **Cursor Harness** | [.cursorrules](./.cursorrules), [.cursor/skills/unit-converter-tdd/](./.cursor/skills/unit-converter-tdd/) | TDD 규칙·Skill |
 
 ---
