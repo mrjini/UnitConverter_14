@@ -60,8 +60,8 @@ Dual-Track TDD 테스트 배치 (RED 단계부터):
 
 | Track | ECB | Harness 경로 |
 |-------|-----|--------------|
-| A — Domain (CONV, VAL) | entity (+ control 단위) | `tests/entity/` |
-| B — Integration (FMT, CLI, CFG, REG) | boundary, control | `tests/boundary/`, `tests/control/` |
+| **Logic** (Track A) | entity, control, InputParser 단위 | `tests/entity/`, `tests/control/`, `tests/boundary/test_input_parser.py` |
+| **UI** (Track B) | boundary E2E, infrastructure | `tests/boundary/test_cli.py` 등 |
 
 ---
 

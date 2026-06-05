@@ -24,12 +24,7 @@ unit_name → meters_per_unit   # 1 unit = N meters
 | feet | 1 / 3.28084 ≈ 0.3048 | 1 feet = 0.3048 m |
 | yard | 1 / 1.09361 ≈ 0.9144 | 1 yard = 0.9144 m |
 
-**저장 방식 (택1, GREEN에서 결정):**
-
-- **A:** `to_meter_factor` — 1 unit = factor meter (위 표)
-- **B:** `from_meter_factor` — 1 meter = factor unit (README 비율)
-
-내부 일관성만 유지하면 됨. SPEC 권장: **A (to_meter_factor)** — 변환 공식 단순화.
+**저장 방식 (SPEC 확정):** `to_meter_factor` — 1 unit = factor meter (위 표). `from_meter_factor` 방식은 사용하지 않음.
 
 ---
 
@@ -76,7 +71,10 @@ yard_value = meter_value / (1/1.09361)
 | meter:2.5 | feet | 8.2021 | **8.2** |
 | meter:2.5 | yard | 2.734025 | **2.7** |
 | feet:8.2 | meter | ≈2.499... | **2.5** |
-| yard:2.7 | meter | ≈2.469... | **2.5** (역변환 시 README 예시와 ±0.1 허용) |
+| yard:2.7 | meter | ≈2.469... | **2.5** |
+| cubit:1 | meter | 0.4572 | **0.5** |
+| cubit:1 | feet | (§3 공식) | **1.5** |
+| cubit:1 | yard | (§3 공식) | **0.5** |
 
 **CONV-01~03:** meter/feet/yard 입력 시 모든 단위 출력  
 **CONV-04:** feet→yard 결과가 meter 경유와 동일 (직접 상수 사용 시 실패)
@@ -91,7 +89,7 @@ yard_value = meter_value / (1/1.09361)
 cubit.to_meter_factor = 0.4572
 ```
 
-`cubit:1` → meter = 0.4572, feet/yard는 §3 공식 적용.
+`cubit:1` → meter raw = 0.4572, display = **0.5** (1자리). feet/yard는 §3·§4 Golden 표.
 
 **Test ID:** REG-01, CONV-05
 

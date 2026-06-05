@@ -33,7 +33,7 @@
 |--------|:--------:|----------|------|
 | **PRD-010** | P1 | OCP: 새 단위·포맷 추가 시 Converter 핵심 로직 수정 없이 확장 가능. | 품질 요구 OCP |
 | **PRD-011** | P1 | SRP + ECB: entity / control / boundary / infrastructure 역할 분리. | 품질 요구 SRP |
-| **PRD-012** | P1 | 모든 PRD 요구는 Test ID와 1:1 이상 추적 가능. | SC-1 추적성 |
+| **PRD-012** | P1 | 모든 PRD 요구는 Test ID와 1:1 이상 추적 가능. **예외:** PRD-012 자체는 meta(매트릭스). | SC-1 |
 
 ### P2 — 확장 (new_features)
 
@@ -60,7 +60,7 @@
 
 ## 수용 기준 (Acceptance)
 
-PRD는 **SC-1~SC-5** ([01-rgio.md](./01-rgio.md)) 및 [11-traceability-matrix.md](./11-traceability-matrix.md)의 Test ID 통과로 수용한다.
+PRD는 **SC-1~SC-5** 및 [11-traceability-matrix.md](./11-traceability-matrix.md) Test ID 통과로 수용. P1 **ARCH-01/02**는 `/review-ecb` + 회귀 green.
 
 ---
 

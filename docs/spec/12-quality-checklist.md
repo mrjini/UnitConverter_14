@@ -8,7 +8,7 @@
 - [ ] 08-design-spec ECB 레이어·의존 방향 (boundary → control → entity)
 - [ ] 02-prd 모든 요구 PRD-ID 부여
 - [ ] 09-scenario-catalog P0 시나리오 Given-When-Then 완료
-- [ ] 11-traceability-matrix orphan 0건, CODE-REF ECB 경로
+- [ ] 11-traceability-matrix orphan 0건 (PRD-012 meta 예외), TODO-ID 유일
 - [ ] 06-conversion-rules Golden Values (8.2, 2.7) 명시
 
 ### SPEC 금지사항 준수
@@ -29,7 +29,8 @@
 
 - [ ] P0 Test ID 전부 RED (실패) 확인
 - [ ] Test 함수/docstring에 Test ID 명시
-- [ ] `tests/entity/` — entity만 직접 호출 (CLI/boundary 미의존)
+- [ ] `tests/entity/` — Converter/Validator (Logic)
+- [ ] `tests/boundary/test_input_parser.py` — ParseError (Logic)
 - [ ] `tests/control/` — ConvertUseCase 단위
 
 ---
@@ -53,9 +54,9 @@
 | **boundary** | CLI, InputParser, Formatter — 표현·I/O만 |
 | **infrastructure** | ConfigLoader, UnitRegistrar — 외부 자원만 |
 
-- [ ] entity → boundary 의존 **없음**
-- [ ] entity → infrastructure 의존 **없음**
-- [ ] boundary → control → entity 의존 방향 준수
+- [ ] entity → boundary / infrastructure import **없음**
+- [ ] boundary → control → entity 의존 방향
+- [ ] control → boundary import **없음**
 
 ### OCP
 

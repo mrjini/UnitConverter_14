@@ -58,7 +58,7 @@ tests/
 └── boundary/                        # Track B: FMT, CLI, CFG, REG E2E
 ```
 
-**SPEC:** Harness(`__init__.py`)만 존재. 모듈 파일은 GREEN부터 생성.
+**SPEC:** Harness(`__init__.py`)만 존재. `src/unit_converter/__init__.py`는 **GREEN** 시 생성 (NFR-004 `python -m unit_converter`).
 
 ---
 
@@ -79,6 +79,7 @@ tests/
 | boundary → control | ✓ |
 | control → entity | ✓ |
 | control → infrastructure | ✓ |
+| control → boundary | ✗ |
 | entity → boundary | ✗ |
 | entity → infrastructure | ✗ |
 | entity → control | ✗ |
@@ -136,12 +137,14 @@ class Converter:
 
 ```python
 class ConvertUseCase:
-    def execute(self, raw_input: str, registry: UnitRegistry) -> list[ConversionResult]: ...
-    # InputParser(parse) → Validator → Converter — boundary가 아닌 control에서 조율
+    def execute(
+        self, unit: str, value: float, registry: UnitRegistry
+    ) -> list[ConversionResult]:
+        # Validator → Converter (파싱은 boundary.CLI + InputParser에서 완료)
 ```
 
-- boundary의 CLI는 UseCase를 **호출만** 함 (오케스트레이션은 control)
-- **PRD:** PRD-001 | **Test:** CONV-*, CLI-02
+- **입력:** CLI(boundary)가 `InputParser`로 파싱한 `unit`, `value`만 전달 — control은 boundary를 **import하지 않음**
+- **PRD:** PRD-001 | **Test:** CONV-* (control 단위), CLI-02 (E2E)
 
 #### RegisterUnitUseCase (`control/register_unit_use_case.py`) [P2]
 
@@ -158,13 +161,17 @@ class ConvertUseCase:
 @dataclass
 class ParsedInput:
     unit: str
-    value_str: str
+    value: float  # 파싱·float 변환 완료 값
+
+class ParseError(Exception):
+    code: str  # ERR_FORMAT | ERR_NUMBER
 
 class InputParser:
-    def parse(self, raw: str) -> ParsedInput: ...
+    def parse(self, raw: str) -> ParsedInput: ...  # 실패 시 ParseError
 ```
 
-- **PRD:** PRD-006 | **Test:** VAL-02 (형식); 숫자·음수·단위는 entity.Validator
+- 형식·숫자 검증은 **boundary**에서 완료. entity.Validator는 음수·미등록 단위만 담당.
+- **PRD:** PRD-006 | **Test:** VAL-02, VAL-02b, VAL-04 (`tests/boundary/test_input_parser.py`)
 
 #### CLI (`boundary/cli.py`)
 
@@ -172,7 +179,8 @@ class InputParser:
 def main(argv: list[str] | None = None) -> int: ...
 ```
 
-- argv, stdin, stdout, exit code — **ConvertUseCase 위임**
+- 흐름: stdin → `InputParser.parse` → `ConvertUseCase.execute(unit, value, registry)` → `Formatter` → stdout
+- `ParseError` / `ValidationError` → stderr 메시지 + exit code
 - **PRD:** PRD-001, 015~017 | **Test:** CLI-*
 
 #### Formatter (`boundary/formatter/`)
@@ -240,11 +248,11 @@ classDiagram
         class UnitRegistrar
     }
 
+    CLI --> InputParser
     CLI --> ConvertUseCase
     CLI --> Formatter
     CLI --> ConfigLoader
     CLI --> RegisterUnitUseCase
-    ConvertUseCase --> InputParser
     ConvertUseCase --> Validator
     ConvertUseCase --> Converter
     RegisterUnitUseCase --> UnitRegistrar

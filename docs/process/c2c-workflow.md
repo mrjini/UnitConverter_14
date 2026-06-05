@@ -103,8 +103,8 @@ Test ID: {목록}
 
 | Track | ECB | Harness | RED 순서 |
 |-------|-----|---------|----------|
-| A | entity, control | `tests/entity/`, `tests/control/` | CONV → VAL → UseCase |
-| B | boundary, infrastructure | `tests/boundary/` | FMT → CLI → CFG → REG |
+| A (Logic) | entity, control, InputParser | `tests/entity/`, `tests/control/`, `test_input_parser.py` | CONV → VAL(entity) → VAL(parse) → UseCase |
+| B (UI) | boundary E2E, infrastructure | `tests/boundary/` | FMT → CLI-02~04 → CFG → REG |
 
 문서: [10-dual-track-plan.md](../spec/10-dual-track-plan.md), [08-design-spec.md](../spec/08-design-spec.md)
 
@@ -127,7 +127,7 @@ Test ID: {목록}
 - [ ] spec 문서 00~12 완료
 - [ ] P0 Test ID 목록 확정
 - [ ] `git checkout -b red` (from spec)
-- [ ] TODO-001~009 순서대로 RED
+- [ ] TODO-001, 004, 005, 006, 007, 019 순서대로 RED
 
 ---
 

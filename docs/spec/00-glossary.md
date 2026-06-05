@@ -33,7 +33,9 @@
 | **infrastructure** | 외부 자원·기술. `ConfigLoader`, `UnitRegistrar`. entity는 infrastructure를 직접 참조하지 않음. |
 | **SRP (Single Responsibility Principle)** | 클래스/모듈은 변경 이유가 하나만 존재. |
 | **OCP (Open-Closed Principle)** | 확장(새 단위·포맷)에는 열려 있고, entity 변환 로직 수정에는 닫혀 있음. |
-| **Dual-Track TDD** | Track A(entity/control) + Track B(boundary E2E)로 테스트를 분리하는 TDD 전략. |
+| **Dual-Track TDD** | **Track A = Logic**, **Track B = UI**. Logic: entity/control/InputParser 단위. UI: CLI E2E. |
+| **ParseError** | boundary.InputParser 예외. ERR_FORMAT, ERR_NUMBER. |
+| **ValidationError** | entity.Validator 예외. ERR_NEGATIVE, ERR_UNKNOWN_UNIT. |
 
 ## 프로세스 용어
 

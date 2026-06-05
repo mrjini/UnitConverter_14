@@ -5,18 +5,16 @@
 UnitConverter_14는 사용자가 입력한 `단위:값`을 등록된 모든 길이 단위로 변환하여 CLI에 출력하는 프로그램이다.
 
 ```
-[User Input]
+[User Input / stdin]
       │
-      ▼ boundary ── InputParser (unit:value)
-      │
-      ▼ control  ── ConvertUseCase
-      │              ├── Validator (entity)
-      │              └── Converter (entity, meter 경유)
-      │
+      ▼ boundary ── InputParser.parse → (unit, value) | ParseError
+      │              ConvertUseCase.execute(unit, value, registry)
+      │                    ├── Validator (entity)
+      │                    └── Converter (entity, meter 경유)
       ▼ boundary ── Formatter → stdout
 ```
 
-**ECB 의존:** boundary → control → entity
+**ECB 의존:** boundary → control → entity. **파싱은 boundary, 검증·변환은 control→entity.**
 
 ---
 
@@ -118,8 +116,8 @@ flowchart TD
         D[Converter via meter]
     end
     A --> B
-    B -->|fail| E1[ERR_FORMAT / ERR_NUMBER]
-    B --> UC
+    B -->|ParseError| E1[ERR_FORMAT / ERR_NUMBER]
+    B -->|unit, value| UC
     UC --> C
     C -->|negative| E2[ERR_NEGATIVE]
     C -->|unknown unit| E3[ERR_UNKNOWN_UNIT]
@@ -135,9 +133,9 @@ flowchart TD
 | ECB | 컴포넌트 | Harness | 책임 | PRD |
 |-----|----------|---------|------|-----|
 | **boundary** | `CLI` | `boundary/cli.py` | argv, stdin, stdout, exit code | PRD-001, 015~017 |
-| **boundary** | `InputParser` | `boundary/input_parser.py` | `unit:value` 분리 | PRD-006 |
+| **boundary** | `InputParser` | `boundary/input_parser.py` | `unit:value` 파싱·float 변환, `ParseError` | PRD-006 |
 | **boundary** | `Formatter` | `boundary/formatter/` | table/json/csv 렌더링 | PRD-008, 015~017 |
-| **control** | `ConvertUseCase` | `control/convert_use_case.py` | 파싱→검증→변환 조율 | PRD-001 |
+| **control** | `ConvertUseCase` | `control/convert_use_case.py` | Validator→Converter 조율 (`unit`, `value` 수신) | PRD-001 |
 | **control** | `RegisterUnitUseCase` | `control/register_unit_use_case.py` | 동적 등록 흐름 [P2] | PRD-014 |
 | **entity** | `Validator` | `entity/validator.py` | 숫자·음수·단위 검증 | PRD-005~007 |
 | **entity** | `UnitRegistry` | `entity/registry.py` | 단위·비율 보관·조회 | PRD-002, 013, 014 |
