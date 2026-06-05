@@ -2,17 +2,23 @@
 ## Unit Converter (Python)
 ![unit-converter](./unit-converter.jpg)
 
-### Current Phase: **RED**
+### Current Phase: **GREEN**
 
 | 항목 | 상태 |
 |------|------|
-| **브랜치** | `red` |
+| **브랜치** | `green` |
 | **Track** | Logic (entity) · C2C (문서) |
-| **RED 묶음** | TODO-001, TODO-002, TODO-003 |
-| **Test ID** | CONV-01, CONV-02, CONV-03 — **3 FAILED** (의도적 RED) |
+| **GREEN 묶음** | TODO-001, TODO-002, TODO-003 |
+| **Test ID** | CONV-01, CONV-02, CONV-03 — **3 PASSED** |
 | **테스트 파일** | `tests/entity/test_conv_01_03_converter.py` |
-| **허용** | `tests/` RED 스켈레톤 (`pytest.fail` only), Report/Prompting |
-| **금지** | `src/unit_converter/` 구현 코드, assert 본문, skip/xfail |
+| **entity 구현** | `unit.py`, `registry.py`, `converter.py` |
+| **다음 RED** | TODO-004 → CONV-04 (meter 경유 일관성) |
+| **허용** | entity 최소 구현, tests assert, Report/Prompting |
+| **금지** | RED에 없는 Test ID 구현, REFACTOR 수준 구조 변경 |
+
+```bash
+python -m pytest tests/entity/test_conv_01_03_converter.py -v   # 3 passed
+```
 
 명세: [docs/spec/README.md](./docs/spec/README.md) · 프로세스: [docs/process/c2c-workflow.md](./docs/process/c2c-workflow.md)
 
@@ -59,7 +65,7 @@
 | CLI·포맷·입력 파싱 | **boundary** | `src/unit_converter/boundary/` | `CLI`, `InputParser`, `TableFormatter`, `JsonFormatter`, `CsvFormatter` |
 | 설정 파일·동적 등록 | **infrastructure** | `src/unit_converter/infrastructure/` | `ConfigLoader`, `UnitRegistrar` |
 
-Dual-Track TDD 테스트 배치 (RED 단계부터):
+Dual-Track TDD 테스트 배치:
 
 | Track | ECB | Harness 경로 |
 |-------|-----|--------------|
@@ -85,6 +91,8 @@ Dual-Track TDD 테스트 배치 (RED 단계부터):
 | **SPEC Transcript** | [Prompting/02.UnitConverter_SPEC_Transcript.md](./Prompting/02.UnitConverter_SPEC_Transcript.md) | 프롬프트 기록 |
 | **RED Report** | [Report/03.UnitConverter_RED_CONV_01_03_Report.md](./Report/03.UnitConverter_RED_CONV_01_03_Report.md) | CONV-01~03 RED 보고 |
 | **RED Transcript** | [Prompting/03.UnitConverter_RED_CONV_01_03_Transcript.md](./Prompting/03.UnitConverter_RED_CONV_01_03_Transcript.md) | RED 프롬프트 기록 |
+| **GREEN Report** | [Report/04.UnitConverter_GREEN_CONV_01_03_Report.md](./Report/04.UnitConverter_GREEN_CONV_01_03_Report.md) | CONV-01~03 GREEN 보고 |
+| **GREEN Transcript** | [Prompting/04.UnitConverter_GREEN_CONV_01_03_Transcript.md](./Prompting/04.UnitConverter_GREEN_CONV_01_03_Transcript.md) | GREEN 프롬프트 기록 |
 | **Cursor Harness** | [.cursorrules](./.cursorrules), [.cursor/skills/unit-converter-tdd/](./.cursor/skills/unit-converter-tdd/) | TDD 규칙·Skill |
 
 ---
