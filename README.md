@@ -1,6 +1,70 @@
 
 ## Unit Converter (Python)
 ![unit-converter](./unit-converter.jpg)
+
+### Current Phase: **SPEC**
+
+| 항목 | 상태 |
+|------|------|
+| **브랜치** | `spec` |
+| **Track** | C2C (Cursor to Code) |
+| **허용** | `docs/spec/`, Harness 디렉터리, 명세 문서 |
+| **금지** | `src/unit_converter/` 구현 코드, `tests/` RED 테스트, pytest 본문 |
+
+명세: [docs/spec/README.md](./docs/spec/README.md) · 프로세스: [docs/process/c2c-workflow.md](./docs/process/c2c-workflow.md)
+
+---
+
+### ECB Architecture (Entity–Control–Boundary)
+
+의존 방향: **boundary → control → entity** (외부에서 내부로, 안쪽 레이어는 바깥을 모름)
+
+```
+[ User / stdin / argv / config file ]
+              │
+              ▼
+┌─────────────────────────────────────┐
+│  boundary                           │  CLI, Formatter, InputParser
+│  (외부 I/O · 표현)                   │  stdin/stdout, table/json/csv
+└─────────────────┬───────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────┐
+│  control                            │  ConvertUseCase, RegisterUnitUseCase
+│  (유스케이스 · 흐름 조율)             │  boundary ↔ entity 오케스트레이션
+└─────────────────┬───────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────┐
+│  entity                             │  Converter, Validator, UnitRegistry
+│  (도메인 · 순수 비즈니스 규칙)        │  meter 경유 변환, 검증 규칙
+└─────────────────────────────────────┘
+                  ▲
+                  │ (설정·파일 로드)
+┌─────────────────────────────────────┐
+│  infrastructure                     │  ConfigLoader, UnitRegistrar
+│  (외부 자원 · 기술 세부)              │  units.json/YAML, 동적 등록 파싱
+└─────────────────────────────────────┘
+```
+
+#### UnitConverter 가이드 → ECB 용어 매핑
+
+| 가이드 (domain / app) | ECB 레이어 | Harness 경로 | 책임 (SPEC) |
+|----------------------|------------|--------------|-------------|
+| **domain** — 변환·검증·단위 규칙 | **entity** | `src/unit_converter/entity/` | `Converter`, `Validator`, `UnitRegistry`, `Unit`, `ConversionResult` |
+| **app** — 유스케이스·흐름 | **control** | `src/unit_converter/control/` | `ConvertUseCase`, 입력→검증→변환→출력 조율 |
+| CLI·포맷·입력 파싱 | **boundary** | `src/unit_converter/boundary/` | `CLI`, `InputParser`, `TableFormatter`, `JsonFormatter`, `CsvFormatter` |
+| 설정 파일·동적 등록 | **infrastructure** | `src/unit_converter/infrastructure/` | `ConfigLoader`, `UnitRegistrar` |
+
+Dual-Track TDD 테스트 배치 (RED 단계부터):
+
+| Track | ECB | Harness 경로 |
+|-------|-----|--------------|
+| A — Domain (CONV, VAL) | entity (+ control 단위) | `tests/entity/` |
+| B — Integration (FMT, CLI, CFG, REG) | boundary, control | `tests/boundary/`, `tests/control/` |
+
+---
+
 ### Overview
 - 사용자가 입력한 길이(`단위:값`)를 기반으로, 해당 값을 다른 모든 단위로 변환해 출력하는 프로그램.
 - 새로운 단위를 추가할 때 기존 코드의 변경이 최소화되도록 설계한다.
